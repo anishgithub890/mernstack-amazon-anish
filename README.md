@@ -1,6 +1,6 @@
 # MERNSTACK AMAZON
 
-![amazon](/frontend/public/images/amazona.jpg)
+![amazon](/frontend/public/images/amazon.png)
 
 # React Tutorial - Build ECommerce
 
