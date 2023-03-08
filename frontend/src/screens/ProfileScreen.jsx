@@ -1,4 +1,4 @@
-import React, { useContext, useReducer, useState } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -6,6 +6,7 @@ import { Store } from '../Store';
 import { toast } from 'react-toastify';
 import { getError } from '../utils';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -22,19 +23,29 @@ const reducer = (state, action) => {
 };
 
 export default function ProfileScreen() {
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const redirectInUrl = new URLSearchParams(search).get('redirect');
+  const redirect = redirectInUrl ? redirectInUrl : '/profile';
+
   const { state, dispatch: ctxDispatch } = useContext(Store);
   const { userInfo } = state;
   const [name, setName] = useState(userInfo.name);
   const [email, setEmail] = useState(userInfo.email);
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirmpassword, setConfirmPassword] = useState('');
 
+  // eslint-disable-next-line
   const [{ loadingUpdate }, dispatch] = useReducer(reducer, {
     loadingUpdate: false,
   });
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (password !== confirmpassword) {
+      toast.error('Password do not match');
+      return;
+    }
     try {
       const { data } = await axios.put(
         '/api/users/profile',
@@ -43,6 +54,7 @@ export default function ProfileScreen() {
           email,
           password,
         },
+
         {
           headers: { Authorization: `Bearer ${userInfo.token}` },
         }
@@ -52,6 +64,7 @@ export default function ProfileScreen() {
       });
       ctxDispatch({ type: 'USER_SIGNIN', payload: data });
       localStorage.setItem('userInfo', JSON.stringify(data));
+      navigate(redirect || '/profile');
       toast.success('User updated successfully');
     } catch (err) {
       dispatch({
@@ -60,6 +73,12 @@ export default function ProfileScreen() {
       toast.error(getError(err));
     }
   };
+
+  useEffect(() => {
+    if (userInfo) {
+      navigate(redirect);
+    }
+  }, [navigate, redirect, userInfo]);
 
   return (
     <div className="container small-container">
@@ -85,17 +104,21 @@ export default function ProfileScreen() {
             required
           />
         </Form.Group>
+
         <Form.Group className="mb-3" controlId="password">
           <Form.Label>Password</Form.Label>
           <Form.Control
             type="password"
+            required
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
-        <Form.Group className="mb-3" controlId="password">
+
+        <Form.Group className="mb-3" controlId="confirmpassword">
           <Form.Label>Confirm Password</Form.Label>
           <Form.Control
-            type="password"
+            type="confirmpassword"
+            required
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </Form.Group>
