@@ -76,7 +76,7 @@ userRouter.post(
         .messages()
         .send(
           {
-            from: 'Amazon <me@mg.yourdomain.com>',
+            from: 'Amazon <amazon-mernstack-anish.onrender.com>',
             to: `${user.name} <${user.email}>`,
             subject: `Reset Password`,
             html: ` 
